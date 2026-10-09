@@ -1,0 +1,17 @@
+.git
+.github
+.gitignore
+.DS_Store
+node_modules
+tests
+test
+docs
+*.md
+package.json
+package-lock.json
+compose.yaml
+Dockerfile
+.dockerignore
+tailwind.config.*
+src
+coverage

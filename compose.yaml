@@ -1,0 +1,23 @@
+services:
+  passphrase-generator:
+    image: ghcr.io/jsbuiting/passphrase_generator:latest
+    container_name: passphrase-generator
+    restart: unless-stopped
+    init: true
+    mem_limit: 32m
+    read_only: true
+    tmpfs:
+      # nginx-unprivileged keeps pid + temp paths under /tmp.
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      # 127.0.0.1 only: the host's cloudflared is the sole client.
+      - "127.0.0.1:8006:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

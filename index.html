@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passphrase Generator</title>
+    <meta name="description" content="Generate strong, memorable passphrases from English and Dutch word lists. Runs entirely in your browser - nothing is sent to any server.">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/tailwind.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-2 text-white">Passphrase Generator</h1>
+        <p class="text-sm text-gray-400 text-center mb-6">Runs fully locally - no data is sent to any server</p>
+
+        <!-- Passphrase Display and Copy Button -->
+        <div class="flex mb-2">
+            <input type="text" id="passphrase-output" class="bg-gray-700 text-gray-100 border border-gray-600 rounded-l-lg p-3 flex-grow font-mono text-xl" placeholder="Loading word lists..." spellcheck="false" autocomplete="off" aria-label="Passphrase">
+            <button type="button" id="copy-btn" disabled aria-label="Copy passphrase" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-r-lg flex-shrink-0 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+                <!-- Copy Icon SVG -->
+                <svg id="copy-icon-default" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <!-- Check Icon SVG (hidden by default) -->
+                <svg id="copy-icon-success" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Copy / load feedback -->
+        <p id="status-message" role="status" aria-live="polite" class="text-sm text-center mb-4 min-h-[20px] text-gray-300"></p>
+
+        <!-- Generate All Button -->
+        <button type="button" id="gen-all-btn" disabled class="bg-green-600 hover:bg-green-700 text-white w-full p-3 rounded-lg text-lg font-semibold mb-8 shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+            Generate
+        </button>
+
+        <!-- Individual Part Generators -->
+        <div id="parts-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+            <!-- Part: Word 1 -->
+            <div id="word1-pane" data-part="word1" draggable="true" class="bg-gray-700 p-4 rounded-lg text-center flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 pane-drag-handle select-none">
+                <button type="button" class="part-toggle text-sm font-medium text-gray-400 mb-2 rounded" aria-pressed="true" title="Include or leave out this part">Word 1</button>
+                <span id="val-word1" class="text-lg font-mono font-bold text-white mb-3 word-value min-h-[28px]"></span>
+                <button type="button" id="gen-word1-btn" class="resample-btn" aria-label="New word 1">New</button>
+            </div>
+            
+            <!-- Part: Word 2 -->
+            <div id="word2-pane" data-part="word2" draggable="true" class="bg-gray-700 p-4 rounded-lg text-center flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 pane-drag-handle select-none">
+                <button type="button" class="part-toggle text-sm font-medium text-gray-400 mb-2 rounded" aria-pressed="true" title="Include or leave out this part">Word 2</button>
+                <span id="val-word2" class="text-lg font-mono font-bold text-white mb-3 word-value min-h-[28px]"></span>
+                <button type="button" id="gen-word2-btn" class="resample-btn" aria-label="New word 2">New</button>
+            </div>
+
+            <!-- Part: Digit -->
+            <div id="optdigit-pane" data-part="optDigit" draggable="true" class="bg-gray-700 p-4 rounded-lg text-center flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 pane-drag-handle select-none">
+                <button type="button" class="part-toggle text-sm font-medium text-gray-400 mb-2 rounded" aria-pressed="true" title="Include or leave out this part">Digit</button>
+                <span id="val-optdigit" class="text-lg font-mono font-bold text-white mb-3 word-value min-h-[28px] h-7"></span>
+                <button type="button" id="gen-optdigit-btn" class="resample-btn" aria-label="New digit">New</button>
+            </div>
+
+            <!-- Part: Word 3 -->
+            <div id="word3-pane" data-part="word3" draggable="true" class="bg-gray-700 p-4 rounded-lg text-center flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 pane-drag-handle select-none">
+                <button type="button" class="part-toggle text-sm font-medium text-gray-400 mb-2 rounded" aria-pressed="true" title="Include or leave out this part">Word 3</button>
+                <span id="val-word3" class="text-lg font-mono font-bold text-white mb-3 word-value min-h-[28px]"></span>
+                <button type="button" id="gen-word3-btn" class="resample-btn" aria-label="New word 3">New</button>
+            </div>
+
+            <!-- Part: Number (0-999) -->
+            <div id="number-pane" data-part="number" draggable="true" class="bg-gray-700 p-4 rounded-lg text-center flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 pane-drag-handle select-none">
+                <button type="button" class="part-toggle text-sm font-medium text-gray-400 mb-2 rounded" aria-pressed="true" title="Include or leave out this part">Number</button>
+                <span id="val-number" class="text-lg font-mono font-bold text-white mb-3 word-value min-h-[28px]"></span>
+                <button type="button" id="gen-number-btn" class="resample-btn" aria-label="New number">New</button>
+            </div>
+
+            <!-- Part: Special Chars -->
+            <div id="specialchars-pane" data-part="specialChars" draggable="true" class="bg-gray-700 p-4 rounded-lg text-center flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 pane-drag-handle select-none">
+                <button type="button" class="part-toggle text-sm font-medium text-gray-400 mb-2 rounded" aria-pressed="true" title="Include or leave out this part">Special</button>
+                <span id="val-specialchars" class="text-lg font-mono font-bold text-white mb-3 word-value min-h-[28px]"></span>
+                <button type="button" id="gen-specialchars-btn" class="resample-btn" aria-label="New special">New</button>
+            </div>
+        </div>
+
+        <!-- Word List Selection -->
+        <div class="bg-gray-700 p-4 rounded-lg mt-8 shadow-md">
+            <h2 class="text-lg font-semibold mb-3 text-white">Word Lists</h2>
+            <div class="grid grid-cols-2 gap-5 mb-3">
+                <!-- English Word List -->
+                <button type="button" id="wordlist-en-pane" data-wordlist="en" aria-pressed="true" class="bg-gray-800 p-4 rounded-lg text-center flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200">
+                    <span class="block text-lg font-medium text-gray-400 mb-2">English</span>
+                    <span class="block text-xs text-gray-400">
+                        <span id="word-count-en" class="text-white font-semibold">0</span> words
+                    </span>
+                </button>
+                
+                <!-- Dutch Word List -->
+                <button type="button" id="wordlist-nl-pane" data-wordlist="nl" aria-pressed="true" class="bg-gray-800 p-4 rounded-lg text-center flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200">
+                    <span class="block text-lg font-medium text-gray-400 mb-2">Dutch</span>
+                    <span class="block text-xs text-gray-400">
+                        <span id="word-count-nl" class="text-white font-semibold">0</span> words
+                    </span>
+                </button>
+            </div>
+            <div class="text-sm text-gray-400">
+                Total words available: <span id="word-count" class="text-white font-semibold">0</span>
+            </div>
+        </div>
+
+        <!-- Security Report -->
+        <div id="security-report" class="bg-gray-700 p-4 rounded-lg mt-8 shadow-md">
+            <h2 class="text-lg font-semibold mb-3 text-white">Security Analysis</h2>
+            <div class="space-y-4">
+                <div>
+                    <div class="text-sm mb-1">
+                        Strength: <span id="security-level" class="font-bold px-3 py-1 rounded-lg inline-block">-</span>
+                        <span id="strength-bits" class="text-white font-mono font-semibold ml-2"></span>
+                    </div>
+                    <div id="security-notes" class="text-xs text-gray-400 mt-1 italic"></div>
+                    <div id="edit-notes" class="text-xs text-gray-300 mt-1"></div>
+                </div>
+
+                <div class="border-l-4 border-blue-500 pl-3">
+                    <h3 class="text-sm font-semibold text-white mb-2">Scenario 1: Passphrase-aware attack</h3>
+                    <div class="text-sm text-gray-400 mb-1">
+                        Search space: <span id="combinations-count" class="text-white font-mono font-semibold">-</span>
+                        (<span id="generator-bits" class="text-white font-mono font-semibold">-</span> bits)
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1 italic">An attacker who knows how this generator works and tries every passphrase it can make. This sets the strength above.</div>
+                </div>
+
+                <div class="border-l-4 border-gray-500 pl-3">
+                    <h3 class="text-sm font-semibold text-white mb-2">Scenario 2: Raw brute force (ceiling)</h3>
+                    <div class="text-sm text-gray-400 mb-1">Password length: <span id="password-length" class="text-white font-mono font-semibold">-</span> characters</div>
+                    <div class="text-sm text-gray-400 mb-1">Character-based entropy: <span id="entropy-bits" class="text-white font-mono font-semibold">-</span> bits</div>
+                    <div class="text-xs text-gray-400 mt-1 italic">Only if the attacker treats it as random characters. Cracking tools try word patterns first, so this is an upper bound, not the strength.</div>
+                </div>
+
+                <div class="border-t border-gray-600 pt-3 mt-3">
+                    <p class="text-xs text-gray-500 italic">
+                        Privacy Note: This application runs entirely in your browser. All word lists and generation logic are processed locally - no data is transmitted to any server.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/logic.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
