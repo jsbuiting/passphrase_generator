@@ -12,6 +12,14 @@ COPY js/ /usr/share/nginx/html/js/
 COPY data/ /usr/share/nginx/html/data/
 COPY fonts/ /usr/share/nginx/html/fonts/
 
+# Cache-bust: stamp css/ and js/ links in index.html (never cached) with a hash
+# of their contents, so a deploy can't pair new HTML with old cached scripts.
+USER root
+RUN cd /usr/share/nginx/html \
+ && v=$(cat css/*.css js/*.js | sha256sum | cut -c1-12) \
+ && sed -i -E "s#(href|src)=\"((css|js)/[^\"?]+)\"#\1=\"\2?v=$v\"#g" index.html \
+ && test "$(grep -c "?v=$v" index.html)" -eq 4
+
 # Base image already runs as uid 101 (nginx); stated explicitly for auditors.
 USER 101
 EXPOSE 8080

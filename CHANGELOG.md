@@ -11,6 +11,7 @@
 - Tests for word-list parsing, cross-list de-duplication, clipboard copy results and the shipped word lists.
 
 ### Changed
+- The image build stamps the CSS/JS links in `index.html` with a content hash (`?v=…`), so after a deploy browsers fetch the new scripts instead of pairing new HTML with old cached ones.
 - All parts are enabled by default. A visitor's on/off choices for parts and word lists are remembered in `localStorage` (only the choices, never a passphrase).
 - Part labels and word-list panes are buttons, so they can be toggled from the keyboard; the passphrase field and copy button have accessible names; visible keyboard focus.
 - Supply chain: GitHub Actions pinned to commit SHAs, base image pinned by digest, Dependabot for actions, Docker and npm; CI on Node 24; workflow token read-only by default.
